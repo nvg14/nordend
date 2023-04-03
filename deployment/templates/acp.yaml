@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: acp
+  name: acp
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.acp.replicas }}
+  selector:
+    matchLabels:
+      app: acp
+  template:
+    metadata:
+      labels:
+        app: acp
+      name: acp
+    spec:
+      hostname: {{ .Release.Namespace }}
+
+      containers:
+      - name: acp
+        image: {{ .Values.acp.containerImage }}
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.acp.port }}
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.acp.port }}
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        ports:
+        - containerPort: 8080
+        env:
+          - name: MYSQL_USERNAME
+            value: "{{ .Values.acp.mysql_username }}"
+          - name: MYSQL_PASSWORD
+            value: "{{ .Values.acp.mysql_password }}"
+          - name: MYSQL_HOST
+            value: "{{ .Values.acp.mysql_host }}"
+          - name: MYSQL_DB
+            value: "{{ .Values.acp.mysql_db }}"
+          
+        resources:
+          limits:
+            cpu: "{{ (split "," .Values.acp.resources.cpu)._1 | trim }}"
+            memory: "{{ (split "," .Values.acp.resources.memory)._1 | trim }}"
+          requests:
+            cpu: "{{ (split "," .Values.acp.resources.cpu)._0 | trim }}"
+            memory: "{{ (split "," .Values.acp.resources.memory)._0 | trim }}"
+            
+      restartPolicy: Always

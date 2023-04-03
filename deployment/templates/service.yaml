@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: acp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: acp
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.acp.hostname }}
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .Values.provider.acmArn}}
+spec:
+  ports:
+  - name: acp
+    port: 443
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: acp
+  type: LoadBalancer

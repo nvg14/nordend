@@ -1,0 +1,2006 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: "Nordend"
+  contact:
+    name: Amagi Nordend Team
+    email: "stv-dev@amagi.com"
+  description: |-
+    <br>
+    Nordend - A service which holds the record of the master metadata belonging to an Account, Channel, Delivery and Platform that Amagi offers.
+
+    <br/>
+    <hr/>
+    <br/>
+
+    ### Entities
+
+    - **Account** : Account is a resource that is uniquely identifiable with AMGID and represents one billable customer.
+    - **Channel** : Channel is a resource that represents any linear delivery specific workflow that is running within amagi ecosystem.
+    - **Platform** : Platform is a resource that uniquely refers to any consumers of the deliverables that Amagi has to offer via linear or on-demand workflows.
+    - **Delivery** : Delivery is an association entity which connects a account or a channel to one platform.
+
+    <br/>
+    <hr/>
+    <br/>
+    
+    ### Entity Relationship
+
+    | Entity | Association | Entity |
+    |-|-|-|
+    | Account | One to Many | Channel |
+    | Channel | One to Many | Delivery |
+    | Delivery | One to One | Platform |
+
+    <br/>
+    <hr/>
+    <br/>
+    
+    ### API Usage
+
+    #### Authentication
+
+    - API Key Authentitcation is used to make any API calls.
+    - API Key can be obtained by contacting the developer team .
+    - API Key needs to be passed alongside the API authorization header for every API request.
+
+    #### Response Codes
+
+    | HTTP Verb | Allowed Responses |
+    | - | - |
+    | POST | 201, 400, 403, 409, 500 |
+    | GET | 200, 403, 500 |
+    | PUT | 200, 400, 403, 500 |
+    | DELETE | 200, 403, 500 |
+
+    <br/>
+    <hr/>
+    <br/>
+
+
+servers:
+  - url: https://api.dev.amagi.tv/nordend/v1
+    description: Development server
+  - url: https://api.test.amagi.tv/nordend/v1
+    description: Test server
+  - url: https://api.staging.amagi.tv/nordend/v1
+    description: Staging server
+  - url: https://api.amagi.tv/nordend/v1
+    description: Production server  
+
+tags:
+  - name: "Account Management"
+    description: "Account management provides apis to create, retrieve and delete [Account](#Entities) resource."
+  - name: "Channel Management"
+    description: "Channel management provides apis to create, retrieve, update and delete [Channel](#Entities) resource."
+  - name: "Platform Management"
+    description: "Platform management provides APIs to create, retrieve, update and delete [Platform](#Entities) resource."
+  - name: "Delivery Management"
+    description: "Delivery management provides APIs to create, retrieve, update and delete [Delivery](#Entities) resource."
+
+
+paths:
+  /accounts:
+    post:
+      tags:
+        - "Account Management"
+      summary: "Create an account resource"
+      description: |-
+        This API allows the caller to create a resource 'Account'.
+        
+        `Note: An update operation is not available in /accounts endpoint. If there is a necessity to update the resource, older resource needs to be deleted and a new resource needs to be created.`
+      operationId: "createAccount"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Account"
+      responses:
+        201:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        409:
+          description: "Conflict"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    
+    get:
+      tags:
+        - "Account Management"
+      summary: "Get list of accounts"
+      description: |-
+        This API allows the caller to get paginated list of accounts.
+        
+        `Note: By deafult all the accounts will be listed. Account cannot be queried based on AMGID, instead caller is requested to use GET /accounts/{amgid} to get specific account details.`
+      operationId: "getAccounts"
+      parameters:
+        - in: "query"
+          name: "page"
+          description: |-
+            This signifies the page number. 
+            
+            `Starts with 1`
+          required: false
+          schema:
+            type: "number"
+        - in: "query"
+          name: "offset"
+          description: |-
+            Number of accounts in a single page. 
+            
+            `Default is 20`
+          required: false
+          schema:
+            type: "number"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountPaginatedResponse"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  
+  /accounts/{amgid}:
+    get:
+      tags:
+        - "Account Management"
+      summary: "Get details of an account by amgid"
+      description: |-
+        This API allows the caller to get specific account resource.
+      operationId: "getAccountByAmgId"
+      parameters:
+        - in: "path"
+          name: "amgid"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+
+    delete:
+      tags:
+        - "Account Management"
+      summary: "Delete a specific Account"
+      description: |-
+        This API allows the caller to delete an account resource by amgid.
+
+        Note: 
+          - This is an irrevocable action. Ensure you are absolutely sure before this is called.
+          - This can be called, iff all the associated channel resources are deleted.
+
+      parameters:
+        - in: "path"
+          name: "amgid"
+          required: true
+          schema:
+            type: "string"
+      operationId: "deleteAccount"
+      responses:
+        "200":
+          description: "successful operation"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  
+  /channels:
+    post:
+      tags:
+        - "Channel Management"
+      summary: "Create a channel resource"
+      description: |-
+        This API allows the caller to create a resource 'Channel'.
+        
+        `Note: An account needs to be existent to create this resource. Channel is a dependent entity of account entity.`
+      operationId: "createChannel"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Channel"
+      responses:
+        201:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        409:
+          description: "Conflict"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    
+
+    get:
+      tags:
+        - "Channel Management"
+      summary: "Get list of channels"
+      description: |-
+        This API allows the caller to get paginated list of channels.
+        
+        `Note: By deafult all the channels beloging to all the accounts will be listed. Channel cannot be queried based on channleid, instead caller is requested to use GET /channels/{channelid} to get specific channel details. Different query options are provided to get results based on caller's specific requirement.`
+      operationId: "getChannels"
+      parameters:
+        - in: "query"
+          name: "page"
+          description: |-
+            This signifies the page number. 
+            
+            `Starts with 1`
+          required: false
+          schema:
+            type: "number"
+        - in: "query"
+          name: "offset"
+          description: |-
+            Number of accounts in a single page. 
+            
+            `Default is 10`
+          required: false
+          schema:
+            type: "number"
+        - in: "query"
+          name: "amgid"
+          description: "Filter list for a given amgid"
+          required: false
+          schema:
+            type: "string"
+        - in: "query"
+          name: "language"
+          description: "Filter list for a primary audio language"
+          required: false
+          schema:
+            type: "string"
+        - in: "query"
+          name: "timezone"
+          description: "Filter list for a timezone"
+          required: false
+          schema:
+            type: "string"
+        - in: "query"
+          name: "rating"
+          description: "Filter list for a rating"
+          required: false
+          schema:
+            type: "string"
+        - in: "query"
+          name: "genre"
+          description: "Filter list for a genre"
+          required: false
+          schema:
+            type: "string"
+        - in: "query"
+          name: "tags"
+          description: "Filter list for given tags"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelPaginatedResponse"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /channels/{channelid}:
+    get:
+      tags:
+        - "Channel Management"
+      summary: "Get details of a specific channel"
+      description: |-
+        This API allows the caller to get a specific deatils of a channel resource.
+      operationId: "getSpecificChannel"
+      parameters:
+        - in: "path"
+          name: "channelid"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+    patch:
+      tags:
+        - "Channel Management"
+      summary: "Update speific details of a Channel"
+      description: |-
+        This API allows the caller to change any specific values of the channel resource except audios, captions and artworks.
+
+        This patch follows the implementation as specified in [RFC 6902](https://www.rfc-editor.org/rfc/rfc6902)
+
+        <hr/>
+        
+        `add`
+
+        The "add" operation performs one of the following functions, depending upon what the target location references
+        - If the target location specifies an array index, a new value is inserted into the array at the specified index.
+        - If the target location specifies an object member that does not already exist, a new member is added to the object.
+        - If the target location specifies an object member that does exist, that member's value is replaced.
+
+        Example: 
+        ```
+        { "op": "add", "path": "/name", "value": "mars" }
+        ```
+        <hr/>
+        
+        `remove`
+
+        - The "remove" operation removes the value at the target location.
+        - The target location MUST exist for the operation to be successful.
+
+        Example:
+        ```
+        { "op": "remove", "path": "/name" }
+        ```
+        <hr/>
+        
+        `replace`
+
+        - The "replace" operation replaces the value at the target location with a new value. The operation object MUST contain a "value" member whose content specifies the replacement value.
+        - The target location MUST exist for the operation to be successful.
+
+        Example: 
+        ```
+        { "op": "replace", "path": "/short_description", "value": "This is an example" }
+        ```
+        <hr/>
+        
+        `move`
+
+        - The "move" operation removes the value at a specified location and adds it to the target location.
+        - The operation object MUST contain a "from" member, which is a string containing a JSON Pointer value that references the location in the target document to move the value from.
+        - The "from" location MUST exist for the operation to be successful.
+
+        Example: 
+        ```
+        { "op": "move", "from": "/short_description", "path": "/long_description" }
+        ```
+        <hr/>
+
+        `copy`
+
+        - The "copy" operation copies the value at a specified location to the target location.
+        - The operation object MUST contain a "from" member, which is a string containing a JSON Pointer value that references the location in the target document to copy the value from.
+        - The "from" location MUST exist for the operation to be successful.
+
+        Example: 
+        ```
+        { "op": "copy", "from": "/short_description", "path": "/long_description" }
+        ```
+      parameters:
+        - in: "path"
+          name: "channelid"
+          required: true
+          schema:
+            type: "string"
+      operationId: "updateChannel"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChannelPatch"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+    delete:
+      tags:
+        - "Channel Management"
+      summary: "Delete a Channel"
+      description: |-
+        This API allows the caller to delete specific channel resource.
+        
+        Note: 
+          - This is an irrevocable action. Ensure you are absolutely sure before this is called.
+          - This can be called, iff all the associated delivery resources are deleted.
+
+      parameters:
+        - in: "path"
+          name: "channelid"
+          required: true
+          schema:
+            type: "string"
+      operationId: "deleteChannel"
+      responses:
+        "200":
+          description: "successful operation"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /channels/{channelid}/captions:
+    put:
+      tags:
+        - "Channel Management"
+      summary: "Update configuration of caption associated with the channel"
+      description: |-
+        This allows the caller to change the captions associated with a channel resource.
+
+        `Note: This change would be broadcasted to via the pub-sub channels. This change would require the downstream services to modify their internal workings.`
+      operationId: "updateChannelCaption"
+      parameters:
+        - in: "path"
+          required: true
+          name: "channelid"
+          schema:
+            type: "number"
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Caption"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /channels/{channelid}/audios:
+    put:
+      tags:
+        - "Channel Management"
+      summary: "Update configuration of audios associated with a channel"
+      description: |-
+        This allows the caller to change the audios associated with a channel resource.
+
+        `Only one audio can be primary audio.`
+
+        `Note: This change would be broadcasted to via the pub-sub channels. This change would require the downstream services to modify their internal workings.`
+      parameters:
+        - in: "path"
+          required: true
+          name: "channelid"
+          schema:
+            type: "number"
+            example: 1
+      operationId: "updateChannelAudio"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: "#/components/schemas/Audio"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /channels/{channelid}/artworks:
+    put:
+      tags:
+        - "Channel Management"
+      summary: "Update configuration of artworks associated with the channel"
+      description: |-
+        This allows the caller to change the artworks associated with a channel resource.
+
+        `Note: This change would be broadcasted to via the pub-sub channels. This change would require the downstream services to modify their internal workings.`
+      parameters:
+        - in: "path"
+          required: true
+          name: "channelid"
+          schema:
+            type: "number"
+            example: 1
+      operationId: "updateChannelArtwork"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: "#/components/schemas/Artwork"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ChannelResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /channels/{channelid}/ratings:
+    put:
+      tags:
+        - "Channel Management"
+      summary: "Update configuration of ratings associated with the channel"
+      description: |-
+        This allows the caller to change the ratings associated with a channel resource.
+
+      operationId: "updateChannelRatings"
+      parameters:
+        - in: "path"
+          required: true
+          name: "channelid"
+          schema:
+            type: "number"
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Rating"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /platforms:
+    post:
+      tags:
+        - "Platform Management"
+      summary: "Create a platform resource"
+      description: |-
+        This API allows the caller to create a resource 'Platform'.
+        
+        `This is an independent entity which does not require any other entity to be present.`
+      operationId: "createPlatform"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Platform"
+      responses:
+        201:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        409:
+          description: "Conflict"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+    get:
+      tags:
+        - "Platform Management"
+      summary: "Get list of platforms"
+      description: |-
+        This API allows the caller to get paginated list of platforms.
+        
+        `Note: By deafult all the platforms will be listed.`
+      operationId: "getPlatforms"
+      parameters:
+        - in: "query"
+          name: "page"
+          description: |-
+            This signifies the page number. 
+            
+            `Starts with 1`
+          required: false
+          schema:
+            type: "number"
+        - in: "query"
+          name: "offset"
+          description: |-
+            Number of accounts in a single page. 
+            
+            `Default is 20`
+          required: false
+          schema:
+            type: "number"
+        - in: "query"
+          name: "region"
+          description: "Filter list for a given region"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  page:
+                    type: "number"
+                    example: 1
+                  offset:
+                    type: "number"
+                    example: 20
+                  result:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/PlatformResponse"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /platforms/{platformid}:
+    get:
+      tags:
+        - "Platform Management"
+      summary: "Get list of platforms"
+      description: |-
+        This API allows the caller to get deatils of a specific platform.
+        
+      operationId: "getSpecificPlatform"
+      parameters:
+        - in: "path"
+          required: true
+          name: "platformid"
+          schema:
+            type: "number"
+            example: 1
+      
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    
+    put:
+      tags:
+        - "Platform Management"
+      summary: "Update configuration of platform"
+      description: |-
+        This allows the caller to change the linear and on-demand specification associated with a platform resource.
+
+        `Note: This change would be an idempotent change.`
+      operationId: "updatePlatformConfig"
+      parameters:
+        - in: "path"
+          required: true
+          name: "platformid"
+          schema:
+            type: "number"
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Platform"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+    delete:
+      tags:
+        - "Platform Management"
+      summary: "Delete a specific Platform"
+      description: |-
+        This API allows the caller to delete a Platform resource by platformid.
+
+        Note: 
+          - This is an irrevocable action. Ensure you are absolutely sure before this is called.
+          - This can be called, iff all the associated delivery resources are deleted.
+
+      parameters:
+        - in: "path"
+          name: "platformid"
+          required: true
+          schema:
+            type: "string"
+      operationId: "deletePlatform"
+      responses:
+        "200":
+          description: "successful operation"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+  /deliveries:
+    post:
+      tags:
+        - "Delivery Management"
+      summary: "Create a delivery resource"
+      description: |-
+        This API allows the caller to create a resource 'Delivery'.
+        
+        `This is an dependent entity which requires account, channel and platform to be present beforehand.`
+      operationId: "createdelivery"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Delivery"
+      responses:
+        201:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delivery"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        409:
+          description: "Conflict"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+    get:
+      tags:
+        - "Delivery Management"
+      summary: "Get list of deliveries"
+      description: |-
+        This API allows the caller to get paginated list of deliveries.
+        
+        `Note: By deafult all the deliveries (both linear and on-demand) will be listed. To get a specific linear channel delivery, channelid needs to be passed as a query parameter.`
+      operationId: "getDeliveries"
+      parameters:
+        - in: "query"
+          name: "page"
+          description: |-
+            This signifies the page number. 
+            
+            `Starts with 1`
+          required: false
+          schema:
+            type: "number"
+        - in: "query"
+          name: "offset"
+          description: |-
+            Number of accounts in a single page. 
+            
+            `Default is 20`
+          required: false
+          schema:
+            type: "number"
+        - in: "query"
+          name: "amgid"
+          description: "Filter list for a given amgid"
+          required: true
+          schema:
+            type: "string"
+        - in: "query"
+          name: "platformid"
+          description: "Filter list for a given platformid"
+          required: true
+          schema:
+            type: "string"
+        - in: "query"
+          name: "channelid"
+          description: "Filter list for a given channelid"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  page:
+                    type: "number"
+                    example: 1
+                  offset:
+                    type: "number"
+                    example: 20
+                  result:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/Delivery"
+        403:
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+    patch:
+      tags:
+        - "Delivery Management"
+      summary: "Update configuration of platform associated with the channel/account"
+      description: |-
+        This allows the caller to change the platform user inputs associated with a platform resource configured for a channel/account.
+
+      operationId: "updateDeliveryConfig"
+      parameters:
+        - in: "query"
+          name: "amgid"
+          description: "Filter list for a given amgid"
+          required: true
+          schema:
+            type: "string"
+        - in: "query"
+          name: "platformid"
+          description: "Filter list for a given platformid"
+          required: true
+          schema:
+            type: "string"
+        - in: "query"
+          name: "channelid"
+          description: "Filter list for a given channelid"
+          required: false
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeliveriesPatch"
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformSpec"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+    delete:
+      tags:
+        - "Delivery Management"
+      summary: "Delete a specific Delivery"
+      description: |-
+        This API allows the caller to delete a delivery resource by amgid, channelid and platformid.
+
+        Note: 
+          - This is an irrevocable action. Ensure you are absolutely sure before this is called.
+          - This can be called, iff all the associated channel resources are deleted.
+
+      parameters:
+        - in: "path"
+          name: "amgid"
+          required: true
+          schema:
+            type: "string"
+        - in: "query"
+          name: "platformid"
+          required: true
+          schema:
+            type: "string"
+        - in: "query"
+          name: "channelid"
+          required: false
+          schema:
+            type: "string"
+      operationId: "deleteDelivery"
+      responses:
+        "200":
+          description: "successful operation"
+        403:
+          description: "User forbidden from making the request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+components:
+  schemas:
+    BadRequest:
+      type: "object"
+      properties:
+        errors:
+          type: "object"
+        message:
+          type: "string"
+          example: "Invalid Request"
+
+    Unauthorized:
+      type: "object"
+      properties:
+        errors:
+          type: "object"
+        message:
+          type: "string"
+          example: "Unauthorized"
+
+    Forbidden:
+      type: "object"
+      properties:
+        errors:
+          type: "object"
+        message:
+          type: "string"
+          example: "Forbidden"
+
+    NotFound:
+      type: "object"
+      properties:
+        errors:
+          type: "object"
+        message:
+          type: "string"
+          example: "Not Found"
+
+    Conflict:
+      type: "object"
+      properties:
+        errors:
+          type: "object"
+        message:
+          type: "string"
+          example: "Already Exists"
+
+    InternalServerError:
+      type: "object"
+      properties:
+        errors:
+          type: "object"
+        message:
+          type: "string"
+          example: "Internal Server Error"
+
+    Countries:
+      type: "array"
+      items:
+        type: "string"
+        
+    AudioLanguages:
+      type: "string"
+      enum:
+            [
+              "ABK",
+              "AAR",
+              "AFR",
+              "AKA",
+              "SQI",
+              "AMH",
+              "ARA9",
+              "ARG",
+              "HYE",
+              "ASM",
+              "AVA",
+              "AVE",
+              "AYM",
+              "AZE",
+              "BAM",
+              "BAK",
+              "EUS",
+              "BEL",
+              "BEN",
+              "BIS",
+              "BOS",
+              "BRE",
+              "BUL",
+              "MYA",
+              "CAT",
+              "CHA",
+              "CHE",
+              "NYA",
+              "ZHO6",
+              "CHV",
+              "COR",
+              "COS",
+              "CRE",
+              "HRV",
+              "CES",
+              "DAN",
+              "DIV",
+              "NLD",
+              "DZO",
+              "ENG",
+              "EPO",
+              "EST",
+              "EWE",
+              "FAO",
+              "FIJ",
+              "FIN",
+              "FRA",
+              "FUL",
+              "GLG",
+              "KAT",
+              "DEU",
+              "ELL",
+              "GRN",
+              "GUJ",
+              "HAT",
+              "HAU",
+              "HEB",
+              "HER",
+              "HIN",
+              "HMO",
+              "HUN",
+              "INA",
+              "IND",
+              "ILE",
+              "GLE",
+              "IBO",
+              "IPK",
+              "IDO",
+              "ISL",
+              "ITA",
+              "IKU",
+              "JPN",
+              "JAV",
+              "KAL",
+              "KAN",
+              "KAU",
+              "KAS",
+              "KAZ",
+              "KHM",
+              "KIK",
+              "KIN",
+              "KIR",
+              "KOM",
+              "KON",
+              "KOR",
+              "KUR",
+              "KUA",
+              "LAT",
+              "LTZ",
+              "LUG",
+              "LIM",
+              "LIN",
+              "LAO",
+              "LIT",
+              "LUB",
+              "LAV",
+              "GLV",
+              "MKD",
+              "MLG1",
+              "MSA6",
+              "MAL",
+              "MLT",
+              "MRI",
+              "MAR",
+              "MAH",
+              "MON",
+              "NAU",
+              "NAV",
+              "NDE",
+              "NEP",
+              "NDO",
+              "NOB",
+              "NNO",
+              "NOR",
+              "III",
+              "NBL",
+              "OCI",
+              "OJI",
+              "CHU",
+              "ORM",
+              "ORI",
+              "OSS",
+              "PAN",
+              "PLI",
+              "FAS",
+              "POL",
+              "PUS",
+              "POR",
+              "QUE3",
+              "ROH",
+              "RUN",
+              "RON",
+              "RUS",
+              "SAN",
+              "SRD",
+              "SND",
+              "SME",
+              "SMO",
+              "SAG",
+              "SRP",
+              "GLA",
+              "SNA",
+              "SIN",
+              "SLK",
+              "SLV",
+              "SOM",
+              "SOT",
+              "SPA",
+              "SUN",
+              "SWA",
+              "SSW",
+              "SWE",
+              "TAM",
+              "TEL",
+              "TGK",
+              "THA",
+              "TIR",
+              "BOD",
+              "TUK",
+              "TGL",
+              "TSN",
+              "TON",
+              "TUR",
+              "TSO",
+              "TAT",
+              "TWI",
+              "TAH",
+              "UIG",
+              "UKR",
+              "URD",
+              "UZB",
+              "VEN",
+              "VIE",
+              "VOL",
+              "WLN",
+              "CYM",
+              "WOL",
+              "FRY",
+              "XHO",
+              "YID",
+              "YOR",
+              "ZHA6",
+              "ZUL",
+            ]
+
+    Audios:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/AudioLanguages"
+
+    
+    Account:
+      type: "object"
+      required:
+      - amgid
+      - name
+      properties:
+        amgid:
+          type: "string"
+          example: "AMG00001"
+          pattern: "^AMG[0-9]{5}$"
+        name:
+          type: "string"
+          example: "Lhotse"
+        logo:
+          type: "string"
+          example: "https://example.com/logo.png"
+        description:
+          type: "string"
+          example: "Connect with Lhotse to broadcast your video to the world"
+        domain:
+          type: "string"
+          example: "lhotse.now.amagi.tv"
+    
+    AccountPaginatedResponse:
+      type: "object"
+      properties:
+        page:
+          type: "number"
+          example: 1
+        offset:
+          type: "number"
+          example: 20
+        result:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AccountResponse"
+    
+    ChannelPaginatedResponse:
+      type: "object"
+      properties:
+        total:
+          type: "number"
+          example: 1
+        page:
+          type: "number"
+          example: 1
+        offset:
+          type: "number"
+          example: 20
+        result:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ChannelResponse"
+
+    AccountResponse:
+      type: "object"
+      properties:
+        amgid:
+          type: "string"
+          example: "AMG00001"
+        name:
+          type: "string"
+          example: "Lhotse"
+        logo:
+          type: "string"
+          example: "https://example.com/logo.png"
+        description:
+          type: "string"
+          example: "Connect with Lhotse to broadcast your video to the world"
+        domain:
+          type: "string"
+          example: "lhotse.now.amagi.tv"
+
+    Artwork:
+      type: "object"
+      properties:
+        width:
+          type: "number"
+          example: "1920"
+        height:
+          type: "number"
+          example: "1080"
+        file:
+          type: "string"
+        labels:
+          type: "object"
+
+    Caption:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/CaptionObject"
+
+    CaptionObject:
+      type: "object"
+      properties:
+        format:
+          type: "string"
+          enum: ["webVTT", "srt", "scc"]
+          example: "srt"
+        language:
+          $ref: "#/components/schemas/Audios"
+
+    Audio:
+      type: "object"
+      properties:
+        track:
+          type: "number"
+          example: 1
+          enum: [1, 2, 3, 4, 5, 6, 7, 8]
+        language:
+          $ref: "#/components/schemas/AudioLanguages"
+        is_primary:
+          type: "boolean"
+          example: true
+
+    Timezone:
+      type: "string"
+      enum:
+        [
+          "International Date Line West",
+          "American Samoa",
+          "Midway Island",
+          "Hawaii",
+          "Alaska",
+          "Pacific Time (US &amp; Canada)",
+          "Arizona",
+          "Tijuana",
+          "Chihuahua",
+          "Mazatlan",
+          "Mountain Time (US &amp; Canada)",
+          "Central America",
+          "Saskatchewan",
+          "Guadalajara",
+          "Mexico City",
+          "Monterrey",
+          "Central Time (US &amp; Canada)",
+          "Bogota",
+          "Quito",
+          "Lima",
+          "Indiana (East)",
+          "Eastern Time (US &amp; Canada)",
+          "Puerto Rico",
+          "La Paz",
+          "Georgetown",
+          "Caracas",
+          "Atlantic Time (Canada)",
+          "Santiago",
+          "Montevideo",
+          "Buenos Aires",
+          "Brasilia",
+          "Newfoundland",
+          "Greenland",
+          "Mid-Atlantic",
+          "Cape Verde Is.",
+          "UTC",
+          "Azores",
+          "Monrovia",
+          "London",
+          "Lisbon",
+          "Edinburgh",
+          "West Central Africa",
+          "Casablanca",
+          "Dublin",
+          "Bern",
+          "Bratislava",
+          "Brussels",
+          "Budapest",
+          "Berlin",
+          "Copenhagen",
+          "Belgrade",
+          "Ljubljana",
+          "Madrid",
+          "Paris",
+          "Prague",
+          "Rome",
+          "Sarajevo",
+          "Skopje",
+          "Stockholm",
+          "Vienna",
+          "Warsaw",
+          "Amsterdam",
+          "Zagreb",
+          "Harare",
+          "Pretoria",
+          "Kaliningrad",
+          "Cairo",
+          "Zurich",
+          "Helsinki",
+          "Jerusalem",
+          "Bucharest",
+          "Kyiv",
+          "Athens",
+          "Riga",
+          "Sofia",
+          "Volgograd",
+          "Vilnius",
+          "Baghdad",
+          "Istanbul",
+          "Kuwait",
+          "Minsk",
+          "Moscow",
+          "Nairobi",
+          "Riyadh",
+          "St. Petersburg",
+          "Tallinn",
+          "Tehran",
+          "Abu Dhabi",
+          "Baku",
+          "Muscat",
+          "Samara",
+          "Yerevan",
+          "Tbilisi",
+          "Kabul",
+          "Islamabad",
+          "Ekaterinburg",
+          "Tashkent",
+          "Karachi",
+          "Chennai",
+          "Kolkata",
+          "Mumbai",
+          "New Delhi",
+          "Sri Jayawardenepura",
+          "Kathmandu",
+          "Astana",
+          "Urumqi",
+          "Dhaka",
+          "Almaty",
+          "Rangoon",
+          "Jakarta",
+          "Hanoi",
+          "Bangkok",
+          "Krasnoyarsk",
+          "Novosibirsk",
+          "Chongqing",
+          "Beijing",
+          "Hong Kong",
+          "Irkutsk",
+          "Ulaanbaatar",
+          "Perth",
+          "Singapore",
+          "Taipei",
+          "Kuala Lumpur",
+          "Osaka",
+          "Sapporo",
+          "Seoul",
+          "Tokyo",
+          "Yakutsk",
+          "Darwin",
+          "Brisbane",
+          "Guam",
+          "Port Moresby",
+          "Vladivostok",
+          "Adelaide",
+          "Hobart",
+          "Canberra",
+          "Sydney",
+          "Melbourne",
+          "Magadan",
+          "Srednekolymsk",
+          "Solomon Is.",
+          "New Caledonia",
+          "Marshall Is.",
+          "Fiji",
+          "Kamchatka",
+          "Auckland",
+          "Wellington",
+          "Tokelau Is.",
+          "Samoa",
+          "Nuku&#39;alofa",
+          "Chatham Is",
+        ]
+      example: "International Date Line West"
+
+    ChannelPatch:
+      type: "object"
+      properties:
+        op:
+          type: "string"
+          enum: ["add", "remove", "replace", "move", "copy"]
+        path:
+          type: "string"
+          enum: ["/name", "/short_description", "/long_description", "/start_time", "/timezone", "/genre", "/tags"]
+        value:
+          type: "string"
+          example: "Mars"
+    
+    DeliveriesPatch:
+      type: "object"
+      properties:
+        op:
+          type: "string"
+          enum: ["add", "remove", "replace", "move", "copy"]
+        path:
+          type: "string"
+        value:
+          type: "string"
+          example: "Mars"
+        
+    Channel:
+      type: "object"
+      properties:
+        amgid:
+          type: "string"
+          example: AMG00001
+          pattern: "^AMG[0-9]{5}$"
+        name:
+          type: "string"
+          example: "Nebula"
+        short_description:
+          type: "string"
+          example: "The wonders of galaxy."
+        long_description:
+          type: "string"
+          example: "Showcasing the wonderful galaxy through the eyes of the human."
+        start_time:
+          type: "string"
+          example: "18:00"
+          pattern: "([01]?[0-9]|2[0-3]):[0-5][0-9]?"
+        timezone:
+          $ref: "#/components/schemas/Timezone"
+        rating:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Rating"
+        genre:
+          type: "string"
+          example: "action,comedy"
+          enum: ["action", "adventure", "comedy", "drama", "fantasy", "horror", "musicals", "mystery", "romance", "science fiction", "sports", "thriller", "western"]
+        audios:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Audio"
+        caption:
+          $ref: "#/components/schemas/Caption"
+        artworks:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Artwork"
+        tags:
+          type: "object"
+
+    Rating:
+      type: "object"
+      properties:
+        body:
+          type: "string"
+        value:
+          type: "string"
+          example: "PG 16"
+
+    ChannelResponse:
+      type: "object"
+      properties:
+        channelid:
+          type: "string"
+          example: AMG00001C1
+        amgid:
+          type: "string"
+          example: AMG00001
+        name:
+          type: "string"
+          example: "Nebula"
+        short_description:
+          type: "string"
+          example: "The wonders of galaxy."
+        long_description:
+          type: "string"
+          example: "Showcasing the wonderful galaxy through the eyes of the human."
+        start_time:
+          type: "string"
+          example: "18:00"
+        timezone:
+          $ref: "#/components/schemas/Timezone"
+        rating:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Rating"
+        genre:
+          type: "string"
+          example: "action,comedy"
+          enum: ["action", "adventure", "comedy", "drama", "fantasy", "horror", "musicals", "mystery", "romance", "science fiction", "sports", "thriller", "western"]
+        audios:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Audio"
+        caption:
+          $ref: "#/components/schemas/Caption"
+        artworks:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Artwork"
+        status:
+          type: "string"
+          example: "success"
+          enum: ["success", "failed", "starting", "provisioning"]
+        tags:
+          type: "object"
+
+    TranscodingSpecifications:
+      type: "object"
+    
+    DeliverySpecifications:
+      type: "object"
+    
+    MonetizationSpecifications:
+      type: "object"
+    
+    EPGSpecifications:
+      type: "object"
+    
+    StreamingDeliverySpecifications:
+      type: "object"
+    
+    EPGDeliverySpecifications:
+      type: "object"
+    
+    OnDemandDeliverySpecifications:
+      type: "object"
+    
+    LinearSpecifications:
+      type: "object"
+      properties:
+        transcoding_specification:
+          $ref: "#/components/schemas/TranscodingSpecifications"
+        epg_specification:
+          $ref: "#/components/schemas/EPGSpecifications"
+        monetization_specification:
+          $ref: "#/components/schemas/MonetizationSpecifications"
+        delivery_specification:
+          type: "object"
+          properties:
+            streaming_delivery_specification:
+              $ref: "#/components/schemas/StreamingDeliverySpecifications"
+            epg_delivery_specification:
+              $ref: "#/components/schemas/EPGDeliverySpecifications"
+
+    OnDemandSpecifications:
+      type: "object"
+      properties:
+        transcoding_specification:
+          $ref: "#/components/schemas/TranscodingSpecifications"
+        monetization_specification:
+          $ref: "#/components/schemas/MonetizationSpecifications"
+        delivery_specification:
+          type: "object"
+          properties:
+            ondemand_delivery_specification:
+              $ref: "#/components/schemas/OnDemandDeliverySpecifications"
+
+    Platform:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          example: "Samsung"
+        region:
+          type: "array"
+          items:
+            type: "string"
+          example: ["US", "Europe"]
+        short_description:
+          type: "string"
+          example: "The wonders of galaxy."
+        long_description:
+          type: "string"
+          example: "Showcasing the wonderful galaxy through the eyes of the human."
+        logo:
+          type: "string"
+          example: "https://example.com/logo.png"
+        linear_specification:
+          $ref: "#/components/schemas/LinearSpecifications"
+        ondemand_specification:
+          $ref: "#/components/schemas/OnDemandSpecifications"
+    
+    PlatformResponse:
+      type: "object"
+      properties:
+        id: 
+          type: "string"
+          example: "PLT00001"
+          pattern: "PLT[0-9]{5}"
+        name:
+          type: "string"
+          example: "Samsung"
+        region:
+          type: "array"
+          items:
+            type: "string"
+          example: ["US", "Europe"]
+        short_description:
+          type: "string"
+          example: "The wonders of galaxy."
+        long_description:
+          type: "string"
+          example: "Showcasing the wonderful galaxy through the eyes of the human."
+        logo:
+          type: "string"
+          example: "https://example.com/logo.png"
+        linear_specification:
+          $ref: "#/components/schemas/LinearSpecifications"
+        ondemand_specification:
+          $ref: "#/components/schemas/OnDemandSpecifications"
+        
+    PlatformSpec:
+      type: "object"
+
+    Delivery:
+      type: "object"
+      properties:
+        channelid:
+          type: "string"
+          example: "AMG00001C1"
+        amgid:
+          type: "string"
+          example: "AMG00001"
+        platform:
+          type: "object"
+          properties:
+            id: 
+              type: "string"
+              example: "PLT00001"
+              pattern: "PLT[0-9]{5}"
+            deliveries:
+              $ref: "#/components/schemas/PlatformSpec"
+
+        
+  securitySchemes:
+    token:
+      type: apiKey
+      name: Authorization
+      in: header
+
+security:
+  - token: []

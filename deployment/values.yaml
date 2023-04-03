@@ -1,0 +1,19 @@
+provider:
+  region: us-east-1
+  
+acp:
+  containerImage: 545147374420.dkr.ecr.us-east-1.amazonaws.com/acp:v0.1.0
+  hostname: acp.now.amagi.tv
+  port: 8080
+  mysql_username: amaginow-prod-amaginow-Node,aws-use1-cpnow-prod-mgmt-lt,aws-use1-cpnow-prod-bastion-host,aws-use1-cpnow-prod-automation-lt
+  mysql_password: "Amazon CloudFront,Amazon Simple Storage Service,AWS Elemental MediaConnect,AWS Elemental MediaLive,AWS Elemental MediaPackage,Amazon Elastic Compute Cloud - Compute"
+  mysql_host: http://ae11a4515bcbd472ca577b9161499313-793339962.us-east-1.elb.amazonaws.com:9090
+  replicas: 1
+  resources:
+    cpu: 0.5,1.0
+    memory: 1Gi,2Gi
+
+Hpa:
+  acp:
+    min: 1
+    max: 5
