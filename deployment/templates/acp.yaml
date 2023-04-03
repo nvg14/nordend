@@ -48,6 +48,8 @@ spec:
             value: "{{ .Values.acp.mysql_host }}"
           - name: MYSQL_DB
             value: "{{ .Values.acp.mysql_db }}"
+          - name: PORT
+            value: "{{ .Values.acp.port }}"
           
         resources:
           limits:
