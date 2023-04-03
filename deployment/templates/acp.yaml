@@ -24,20 +24,21 @@ spec:
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
-            path: /health
+            path: /api/v1/health
             port: {{ .Values.acp.port }}
             scheme: HTTP
           initialDelaySeconds: 30
           timeoutSeconds: 1
         readinessProbe:
           httpGet:
-            path: /health
+            path: /api/v1/health
             port: {{ .Values.acp.port }}
             scheme: HTTP
           initialDelaySeconds: 30
           timeoutSeconds: 1
         ports:
         - containerPort: 8080
+        args: ["./entrypoint.sh", "server"]
         env:
           - name: MYSQL_USERNAME
             value: "{{ .Values.acp.mysql_username }}"
@@ -55,5 +56,5 @@ spec:
           requests:
             cpu: "{{ (split "," .Values.acp.resources.cpu)._0 | trim }}"
             memory: "{{ (split "," .Values.acp.resources.memory)._0 | trim }}"
-            
+
       restartPolicy: Always
